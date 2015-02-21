@@ -14,4 +14,4 @@ A base setup for creating a running virtual machine using [Vagrant](https://www.
 
 You should now have a provisioned VM running Nexus.  It is configured so that your Virtual Machine is accessible at ````192.168.50.4````
 
-To access the Nexus server, point your browser at http://192.168.50.4:8081/nexus
+To access the Nexus server, point your browser at http://192.168.50.4:8081/nexus/
