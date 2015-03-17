@@ -1,5 +1,6 @@
 ---
 - hosts: nexus.*
+  user: ubuntu
   tasks:
     - name: Create a user for nexus
       sudo: yes
