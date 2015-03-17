@@ -1,0 +1,36 @@
+---
+- name: Add any additional keys
+  sudo: yes
+  apt_key: url='https://jenkins-ci.org/debian/jenkins-ci.org.key' state=present
+
+- name: Add Webupd8team repository
+  sudo: yes
+  apt_repository: repo='ppa:webupd8team/java' state=present update_cache=true
+
+- name: Add Jenkins Repository
+  sudo: yes
+  apt_repository: repo='deb http://pkg.jenkins-ci.org/debian binary/' state=present
+
+- name: Accept Oracle License
+  sudo: yes
+  debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
+
+- name: Install packages
+  sudo: yes
+  apt:  name={{item}} state=latest update_cache=true
+  with_items:
+    - oracle-java8-installer
+    - jenkins
+
+- name: Check if Jenkins is running
+  stat: path=/var/run/jenkins/jenkins.pid
+  register: jenkins_pid
+
+- name: Stop Jenkins if running
+  sudo: yes
+  service: name=jenkins state=stopped
+  when: jenkins_pid.stat.exists == True
+
+- name: Start Jenkins
+  sudo: yes
+  service: name=jenkins state=started

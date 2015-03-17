@@ -1,0 +1,59 @@
+---
+- name: Create a user for nexus
+  sudo: yes
+  user: name=nexus
+
+- name: Add additional apt repositories
+  sudo: yes
+  apt_repository: repo={{item}} state=present update_cache=true
+  with_items:
+    - ppa:webupd8team/java
+
+- name: Accept Oracle License
+  sudo: yes
+  debconf: name={{item}} question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
+  with_items:
+    - oracle-java8-installer
+
+- name: Install packages
+  sudo: yes
+  apt:  name={{item}} state=latest update_cache=true
+  with_items:
+    - oracle-java8-installer
+
+- name: Fetch the remote nexus tar file
+  get_url: url='https://sonatype-download.global.ssl.fastly.net/nexus/oss/nexus-2.11.2-03-bundle.tar.gz' dest='/tmp/'
+
+- name: Untar the nexus file
+  sudo: yes
+  unarchive: src='/tmp/nexus-2.11.2-03-bundle.tar.gz' dest=/usr/local/lib copy=no owner=nexus group=nexus
+
+- name: Set ownership of the nexus and sonatype-work directory
+  sudo: yes
+  file: path={{item}} follow=yes owner=nexus group=nexus recurse=yes
+  with_items:
+    - /usr/local/lib/sonatype-work
+    - /usr/local/lib/nexus-2.11.2-03
+
+- name: Create a symlink for the current nexus version
+  sudo: yes
+  file: src=/usr/local/lib/nexus-2.11.2-03 path=/usr/local/lib/nexus state=link owner=nexus group=nexus
+
+- name: Check if there is a nexus pidfile
+  stat: path=/usr/local/lib/nexus/bin/jsw/linux-x86-64/nexus.pid
+  register: nexus_pid
+
+- name: Stop nexus
+  sudo: yes
+  sudo_user: nexus
+  command: bin/nexus stop
+  args:
+    chdir: /usr/local/lib/nexus
+  when: nexus_pid.stat.exists == True
+
+- name: Startup nexus
+  sudo: yes
+  sudo_user: nexus
+  command: bin/nexus start
+  args:
+    chdir: /usr/local/lib/nexus

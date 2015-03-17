@@ -1,0 +1,6 @@
+---
+- hosts: nexus.*
+  user: ubuntu
+  roles:
+    - nexus
+    - jenkins
