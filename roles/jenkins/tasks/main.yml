@@ -21,6 +21,7 @@
   with_items:
     - oracle-java8-installer
     - jenkins
+    - git
 
 - name: Check if Jenkins is running
   stat: path=/var/run/jenkins/jenkins.pid
